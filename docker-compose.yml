@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+    container_name: ar-image-processing
+    working_dir: /workspace
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/workspace
+    environment:
+      DJANGO_SETTINGS_MODULE: ar_project.settings
+    stdin_open: true
+    tty: true

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <div class="eyebrow"><span class="pulse-dot"></span> SYSTEM ONLINE <span class="mono">VISION PIPELINE v2.0</span></div>
+    <h1>Augmented Reality <span class="grad">in Image Processing</span></h1>
+    <p>
+      Upload a scene photo or open your webcam and watch Django + OpenCV detect
+      <strong>ArUco markers</strong>, estimate <strong>6-DoF pose</strong>, match
+      <strong>ORB features</strong>, and warp virtual objects onto the real world
+      with <strong>RANSAC homography</strong> — all processed server-side in Python.
+    </p>
+    <div class="cta-row">
+      <a class="btn primary" href="{% url 'ar_app:upload' %}">Try Upload &amp; Process</a>
+      <a class="btn ghost" href="{% url 'ar_app:live' %}">Open Live AR Camera</a>
+      <a class="btn ghost" href="/marker/23/" download>Download printable marker</a>
+    </div>
+  </div>
+  <div class="hero-art">
+    <div class="radar-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+    <span class="art-label label-top mono">POSE LOCK</span>
+    <span class="art-label label-bottom mono">6-DOF TRACKING</span>
+    <img src="/marker/23/" alt="ArUco marker" class="hero-marker">
+    <p class="mono small">DICT_6X6_250 · ID 23</p>
+  </div>
+</section>
+
+<section class="stat-grid">
+  <div class="stat-card"><h2 id="stat-processed">{{ n_processed }}</h2><p>Images processed</p></div>
+  <div class="stat-card"><h2 id="stat-targets">{{ n_targets }}</h2><p>ORB targets</p></div>
+  <div class="stat-card"><h2 id="stat-overlays">{{ n_overlays }}</h2><p>Virtual objects</p></div>
+</section>
+
+<section class="command-strip">
+  <div><span class="mono">01</span><strong> Capture</strong><small>Upload or webcam input</small></div>
+  <div><span class="mono">02</span><strong> Understand</strong><small>Pose, features and quality metrics</small></div>
+  <div><span class="mono">03</span><strong> Augment</strong><small>Overlay, filter and save results</small></div>
+</section>
+
+<section class="feature-grid">
+  <article class="feature-card">
+    <h3>🎯 Marker-based AR</h3>
+    <p>ArUco fiducial detection, sub-pixel corners, <span class="mono">solvePnP</span>
+       pose, distance readout, and axis drawing — then a perspective-warp of your
+       overlay pinned to the marker.</p>
+  </article>
+  <article class="feature-card">
+    <h3>🧩 Feature-based AR</h3>
+    <p>ORB keypoints + FLANN (LSH) matching with Lowe's ratio test, RANSAC
+       homography, projected target border and inlier visualisation.</p>
+  </article>
+  <article class="feature-card">
+    <h3>📷 Live webcam AR</h3>
+    <p>The browser streams JPEG frames to a Django JSON API; the server augments
+       every frame and streams the result back. No external services.</p>
+  </article>
+  <article class="feature-card">
+    <h3>🎨 Image filters</h3>
+    <p>Canny edges, cartoon, pencil sketch, thermal heatmap, negative, blur —
+       stackable with any AR mode via classic image-processing ops.</p>
+  </article>
+</section>
+
+{% if recent %}
+<section>
+  <h2>Latest runs</h2>
+  <div class="gallery-grid">
+    {% for item in recent %}
+      <a class="thumb-card" href="{% url 'ar_app:gallery_detail' item.pk %}">
+        <img src="{{ item.processed.url }}" alt="{{ item.title }}">
+        <span class="badge">{{ item.get_mode_display }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-refresh dashboard stats every 8s from the JSON API (with a pop animation).
+  const popStat = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el || el.textContent === String(value)) return;
+    el.textContent = value;
+    el.classList.remove("stat-pop");
+    void el.offsetWidth; // restart the animation
+    el.classList.add("stat-pop");
+  };
+  setInterval(async () => {
+    try {
+      const r = await fetch("/api/stats/");
+      const d = await r.json();
+      popStat("stat-processed", d.processed);
+      popStat("stat-targets", d.targets);
+      popStat("stat-overlays", d.overlays);
+    } catch (e) { /* server likely reloading */ }
+  }, 8000);
+</script>
+{% endblock %}

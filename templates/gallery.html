@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Gallery{% endblock %}
+{% block nav_gallery %}active{% endblock %}
+
+{% block content %}
+<h1>Gallery</h1>
+<div class="filter-tabs">
+  <a href="{% url 'ar_app:gallery' %}" class="{% if not active_mode %}active{% endif %}">All</a>
+  <a href="?mode=aruco" class="{% if active_mode == 'aruco' %}active{% endif %}">ArUco</a>
+  <a href="?mode=orb" class="{% if active_mode == 'orb' %}active{% endif %}">ORB</a>
+  <a href="?mode=filter" class="{% if active_mode == 'filter' %}active{% endif %}">Filters</a>
+</div>
+
+{% if items %}
+  <div class="gallery-grid">
+    {% for item in items %}
+      <div class="thumb-card">
+        <a href="{% url 'ar_app:gallery_detail' item.pk %}">
+          <img src="{{ item.processed.url }}" alt="{{ item.title }}" loading="lazy">
+        </a>
+        <div class="thumb-meta">
+          <span class="badge">{{ item.get_mode_display }}</span>
+          {% if item.aruco_count %}<span class="mono small">{{ item.aruco_count }} marker{{ item.aruco_count|pluralize }}</span>{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="placeholder">Nothing here yet — <a href="{% url 'ar_app:upload' %}">process your first image</a>!</div>
+{% endif %}
+{% endblock %}

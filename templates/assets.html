@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Assets{% endblock %}
+{% block nav_assets %}active{% endblock %}
+
+{% block content %}
+<h1>Assets</h1>
+<p class="muted">Manage ORB target images, virtual overlay objects, and print ArUco markers.</p>
+
+<div class="two-col">
+  <div class="card">
+    <h3>➕ Add ORB target image</h3>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="which" value="target">
+      <div class="field"><label>Name</label>{{ t_form.name }} {{ t_form.name.errors }}</div>
+      <div class="field"><label>Image</label>{{ t_form.image }} {{ t_form.image.errors }}</div>
+      <button class="btn primary" type="submit">Save target</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>🖼 Add virtual object (overlay)</h3>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="which" value="overlay">
+      <div class="field"><label>Name</label>{{ o_form.name }} {{ o_form.name.errors }}</div>
+      <div class="field"><label>Image</label>{{ o_form.image }} {{ o_form.image.errors }}</div>
+      <button class="btn primary" type="submit">Save overlay</button>
+    </form>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3>🎯 ORB targets ({{ targets|length }})</h3>
+    {% for t in targets %}
+      <div class="asset-row">
+        <img src="{{ t.image.url }}" alt="{{ t.name }}">
+        <span>{{ t.name }}</span>
+        <form method="post" action="{% url 'ar_app:asset_delete' 'target' t.pk %}" class="inline-form"
+              onsubmit="return confirm('Delete target {{ t.name }}?');">
+          {% csrf_token %}<button class="btn danger small">✕</button>
+        </form>
+      </div>
+    {% empty %}<p class="muted">No targets yet.</p>{% endfor %}
+  </div>
+
+  <div class="card">
+    <h3>✨ Virtual objects ({{ overlays|length }})</h3>
+    {% for o in overlays %}
+      <div class="asset-row">
+        <img src="{{ o.image.url }}" alt="{{ o.name }}">
+        <span>{{ o.name }}</span>
+        <form method="post" action="{% url 'ar_app:asset_delete' 'overlay' o.pk %}" class="inline-form"
+              onsubmit="return confirm('Delete overlay {{ o.name }}?');">
+          {% csrf_token %}<button class="btn danger small">✕</button>
+        </form>
+      </div>
+    {% empty %}<p class="muted">No overlays yet.</p>{% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h3>🖨 Printable ArUco markers</h3>
+  <p>Print one of these, lay it flat, and point the Live AR Camera at it.</p>
+  <div class="marker-row">
+    {% for mid in "0123456789"|make_list %}
+      <a href="/marker/{{ mid }}/" target="_blank">
+        <img src="/marker/{{ mid }}/" alt="ArUco marker {{ mid }}" class="marker-thumb">
+        <span class="mono small">ID {{ mid }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

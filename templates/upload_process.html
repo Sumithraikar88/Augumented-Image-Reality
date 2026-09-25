@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Upload &amp; Process{% endblock %}
+{% block nav_upload %}active{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <div class="eyebrow"><span class="pulse-dot"></span> OFFLINE VISION STUDIO</div>
+    <h1>Upload &amp; Process</h1>
+    <p class="muted">Build an augmented image with marker tracking, feature matching and advanced enhancement modes.</p>
+  </div>
+  <div class="system-chip"><span></span> ENGINE READY</div>
+</div>
+
+<div class="two-col">
+  <form id="ar-form" method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="field">
+      <label>{{ form.image.label }}</label>
+      {{ form.image }}
+      {{ form.image.errors }}
+      <div id="source-preview" class="source-preview hidden"><img id="source-preview-img" alt="Selected image preview"><span class="mono">SOURCE READY</span></div>
+    </div>
+    <div class="field">
+      <label>{{ form.mode.label }}</label>
+      {{ form.mode }}
+      {{ form.mode.errors }}
+    </div>
+    <div class="field">
+      <label>{{ form.overlay.label }}</label>
+      {{ form.overlay }}
+      <p class="hint">{{ form.overlay.help_text }}</p>
+    </div>
+    <div class="field">
+      <label>{{ form.target.label }}</label>
+      {{ form.target }}
+      <p class="hint">{{ form.target.help_text }}</p>
+    </div>
+    <div class="field">
+      <label>{{ form.image_filter.label }}</label>
+      {{ form.image_filter }}
+    </div>
+    <div class="field">
+      <label>{{ form.alpha.label }}: <span id="alpha-val">90</span>%</label>
+      {{ form.alpha }}
+    </div>
+    <button type="submit" class="btn primary" id="submit-btn">🚀 Process image</button>
+    <span id="spinner" class="spinner hidden"></span>
+  </form>
+
+  <div class="card result-card">
+    <h3>Result</h3>
+    <div id="processing-overlay" class="processing-overlay hidden">
+      <svg class="processing-bot" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="50" y1="4" x2="50" y2="14" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/>
+        <circle class="bot-antenna-dot" cx="50" cy="5" r="4.5" fill="#f472b6"/>
+        <rect x="22" y="14" width="56" height="46" rx="14" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+        <rect x="28" y="22" width="44" height="28" rx="10" fill="#0f172a"/>
+        <g>
+          <circle class="bot-eye" cx="42" cy="36" r="5" fill="#22d3ee"/>
+          <circle class="bot-eye" cx="58" cy="36" r="5" fill="#22d3ee"/>
+          <circle cx="44" cy="34" r="1.6" fill="#ffffff"/>
+          <circle cx="60" cy="34" r="1.6" fill="#ffffff"/>
+        </g>
+        <rect x="40" y="60" width="20" height="7" rx="3.5" fill="#94a3b8"/>
+        <rect x="26" y="67" width="48" height="26" rx="12" fill="#334155"/>
+        <rect x="33" y="73" width="12" height="10" rx="3" fill="#22d3ee" opacity=".85"/>
+        <rect x="55" y="73" width="12" height="10" rx="3" fill="#f472b6" opacity=".85"/>
+      </svg>
+      <b class="mono">DETECTING ARUCO MARKERS…</b>
+      <div class="processing-bar"><i id="processing-bar-fill"></i></div>
+      <span id="processing-step" class="mono small muted">initializing vision pipeline</span>
+    </div>
+    <div id="result-image" class="result-img hidden">
+      <img id="result-img" alt="Processed result">
+    </div>
+    <div id="result-placeholder" class="placeholder">
+      No result yet — upload something!<br>
+      <span class="small">Tip: point the camera at the printable ArUco marker.</span>
+    </div>
+    <div id="result-stats" class="stats-panel hidden"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const alphaSlider = document.getElementById("id_alpha");
+if (alphaSlider) {
+  alphaSlider.addEventListener("input", () => {
+    document.getElementById("alpha-val").textContent = alphaSlider.value;
+  });
+}
+
+document.getElementById("ar-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("submit-btn");
+  const spinner = document.getElementById("spinner");
+  const overlay = document.getElementById("processing-overlay");
+  const barFill = document.getElementById("processing-bar-fill");
+  const stepLabel = document.getElementById("processing-step");
+  btn.disabled = true; spinner.classList.add("hidden");
+
+  /* cartoon processing theatre: fake steps while the server works */
+  const steps = [
+    ["converting frames…", 8],
+    ["hunting for aruco markers…", 26],
+    ["estimating 6-dof pose…", 46],
+    ["matching orb features…", 64],
+    ["ransac homography…", 82],
+    ["warping virtual objects…", 94],
+  ];
+  let stepIndex = 0;
+  overlay.classList.remove("hidden");
+  barFill.style.width = "0%";
+  const stepTimer = setInterval(() => {
+    if (stepIndex < steps.length) {
+      const [label, width] = steps[stepIndex];
+      stepLabel.textContent = label;
+      barFill.style.width = `${width}%`;
+      stepIndex += 1;
+    }
+  }, 320);
+
+  const fd = new FormData(e.target);
+  try {
+    const resp = await fetch("{% url 'ar_app:upload' %}", {
+      method: "POST",
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      body: fd,
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "Processing failed");
+
+    clearInterval(stepTimer);
+    barFill.style.width = "100%";
+    stepLabel.textContent = "done!";
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+      document.getElementById("result-placeholder").classList.add("hidden");
+      const wrap = document.getElementById("result-image");
+      wrap.classList.remove("hidden");
+      const resultImg = document.getElementById("result-img");
+      resultImg.classList.remove("img-pop");
+      void resultImg.offsetWidth;
+      resultImg.src = data.result.image;
+      resultImg.classList.add("img-pop");
+      window.dispatchEvent(new CustomEvent("vf:celebrate"));
+    }, 420);
+
+    const s = data.result;
+    document.getElementById("result-stats").classList.remove("hidden");
+    document.getElementById("result-stats").innerHTML = `
+      <h4>Pipeline stats</h4>
+      <ul>
+        <li>Mode: <b>${s.mode}</b></li>
+        <li>ArUco markers found: <b>${s.aruco_count}</b>${s.marker_ids.length ? " (IDs " + s.marker_ids.join(", ") + ")" : ""}</li>
+        <li>ORB keypoints — target/scene: <b>${s.orb_keypoints_target}</b> / <b>${s.orb_keypoints_scene}</b></li>
+        <li>Good matches: <b>${s.good_matches}</b> · Inliers: <b>${s.inliers}</b></li>
+        <li>Tracking confidence: <b>${s.tracking_confidence || 0}%</b> · Light: <b>${(s.image_metrics || {}).exposure || "--"}</b></li>
+        <li>Resolution: <b>${(s.image_metrics || {}).width || "--"} x ${(s.image_metrics || {}).height || "--"}</b> · Sharpness: <b>${(s.image_metrics || {}).sharpness || "--"}</b></li>
+      </ul>`;
+  } catch (err) {
+    clearInterval(stepTimer);
+    overlay.classList.add("hidden");
+    alert(err.message);
+  } finally {
+    btn.disabled = false; spinner.classList.add("hidden");
+  }
+});
+document.getElementById("id_image").addEventListener("change", (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById("source-preview");
+  const previewImg = document.getElementById("source-preview-img");
+  previewImg.classList.remove("scan-in");
+  void previewImg.offsetWidth;
+  previewImg.src = URL.createObjectURL(file);
+  previewImg.classList.add("scan-in");
+  preview.classList.remove("hidden");
+  preview.classList.add("scanning");
+  previewImg.addEventListener("load", () => {
+    setTimeout(() => preview.classList.remove("scanning"), 900);
+  }, { once: true });
+});
+</script>
+{% endblock %}

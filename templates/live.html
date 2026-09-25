@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Live AR Camera{% endblock %}
+{% block nav_live %}active{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <div class="eyebrow"><span class="pulse-dot"></span> REAL-TIME VISION LINK</div>
+    <h1>Live AR Camera</h1>
+    <p class="muted">Stream your camera through the OpenCV vision engine and view tracking, image quality and augmentation readings as they update.</p>
+  </div>
+  <div class="system-chip"><span></span> SERVER READY</div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h3>Vision controls</h3>
+    <div class="field">
+      <label>AR mode</label>
+      <select id="mode">
+        <option value="aruco" selected>Marker-based AR (ArUco)</option>
+        <option value="orb">Feature-based AR (ORB)</option>
+        <option value="filter">Filter only</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Virtual object (overlay)</label>
+      <select id="overlay">
+        <option value="">None</option>
+        {% for o in overlays %}<option value="{{ o.pk }}">{{ o.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>ORB target image</label>
+      <select id="target">
+        <option value="">None</option>
+        {% for t in targets %}<option value="{{ t.pk }}">{{ t.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Filter</label>
+      <select id="filter">
+        <option value="original" selected>Original</option>
+        <option value="clarity">Clarity boost</option>
+        <option value="denoise">Noise reduction</option>
+        <option value="grayscale">Grayscale</option>
+        <option value="edges">Edges</option>
+        <option value="neon">Neon edge glow</option>
+        <option value="nightvision">Night vision</option>
+        <option value="scan">Document scanner</option>
+        <option value="cartoon">Cartoon</option>
+        <option value="sketch">Sketch</option>
+        <option value="thermal">Thermal</option>
+        <option value="negative">Negative</option>
+        <option value="blur">Blur</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Overlay opacity: <span id="alpha-val">90</span>%</label>
+      <input type="range" id="alpha" min="0" max="100" step="5" value="90">
+    </div>
+    <div class="btn-row">
+      <button id="start-btn" class="btn primary">▶ Start camera</button>
+      <button id="stop-btn" class="btn danger" disabled>⏹ Stop</button>
+      <button id="snapshot-btn" class="btn ghost" disabled>📸 Save snapshot to gallery</button>
+    </div>
+    <div class="live-readout">
+      <div><span>LINK</span><b id="signal-state">STANDBY</b></div>
+      <div><span>LATENCY</span><b id="latency-readout">-- ms</b></div>
+      <div><span>CONFIDENCE</span><b id="confidence-readout">--%</b></div>
+    </div>
+    <div id="live-status" class="status mono small">idle</div>
+  </div>
+
+  <div class="card">
+    <h3>Augmented view <span class="live-pill">LIVE</span></h3>
+    <div class="video-wrap scanner-view">
+      <video id="video" autoplay playsinline muted></video>
+      <img id="live-out" class="hidden" alt="AR output">
+      <div class="hud-corners" aria-hidden="true"></div>
+      <div class="scan-line" aria-hidden="true"></div>
+    </div>
+    <div id="live-stats" class="stats-panel mono small hidden"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/live.js"></script>
+{% endblock %}

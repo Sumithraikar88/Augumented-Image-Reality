@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AR Image Processing{% endblock %} · The Ultimate Image Processing</title>
+  <link rel="icon" href="/marker/23/" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="noise-layer" aria-hidden="true"></div>
+  <div class="cursor-orbit" aria-hidden="true"></div>
+  <div class="cursor-spark" aria-hidden="true"></div>
+
+  <!-- background doodles -->
+  <div class="doodle-layer" aria-hidden="true">
+    <span class="doodle d-circle" style="width:26px;height:26px;left:6%;top:24%"></span>
+    <span class="doodle d-ring" style="width:34px;height:34px;left:88%;top:30%"></span>
+    <span class="doodle d-plus" style="width:16px;height:16px;left:12%;top:64%"></span>
+    <span class="doodle d-square" style="width:20px;height:20px;left:92%;top:58%"></span>
+    <span class="doodle d-tri" style="left:78%;top:74%"></span>
+    <span class="doodle d-circle" style="width:18px;height:18px;left:30%;top:88%"></span>
+  </div>
+
+  <!-- flying cartoon characters -->
+  <div class="toon-stage" aria-hidden="true">
+    <!-- rocket -->
+    <div class="flyer rocket" id="toon-rocket">
+      <svg width="64" height="74" viewBox="0 0 64 74" xmlns="http://www.w3.org/2000/svg">
+        <path class="rocket-flame" d="M32 52 Q37 60 32 74 Q27 60 32 52 Z" fill="#fb923c"/>
+        <path class="rocket-flame" d="M32 52 Q36 58 32 68 Q28 58 32 52 Z" fill="#fde047"/>
+        <ellipse cx="18" cy="44" rx="9" ry="13" fill="#f472b6" transform="rotate(-24 18 44)"/>
+        <ellipse cx="46" cy="44" rx="9" ry="13" fill="#f472b6" transform="rotate(24 46 44)"/>
+        <path d="M32 2 C44 12 47 28 47 40 C47 49 40 54 32 54 C24 54 17 49 17 40 C17 28 20 12 32 2 Z" fill="#e2e8f0"/>
+        <circle cx="32" cy="26" r="9" fill="#22d3ee" stroke="#0e7490" stroke-width="3"/>
+        <circle cx="29" cy="23" r="2.6" fill="#ffffff"/>
+      </svg>
+    </div>
+    <!-- UFO (second flyer) -->
+    <div class="flyer" id="toon-ufo">
+      <svg width="86" height="52" viewBox="0 0 86 52" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="43" cy="46" rx="26" ry="5" fill="rgba(34,211,238,.28)"/>
+        <path d="M43 8 C54 8 60 18 60 24 L26 24 C26 18 32 8 43 8 Z" fill="#c4b5fd" opacity=".95"/>
+        <circle cx="43" cy="17" r="5" fill="#0f172a" opacity=".55"/>
+        <ellipse cx="43" cy="29" rx="36" ry="11" fill="#94a3b8"/>
+        <ellipse cx="43" cy="27" rx="36" ry="9" fill="#e2e8f0"/>
+        <circle class="ufo-light" cx="20" cy="29" r="3" fill="#22d3ee"/>
+        <circle class="ufo-light" cx="35" cy="32" r="3" fill="#f472b6"/>
+        <circle class="ufo-light" cx="51" cy="32" r="3" fill="#a3e635"/>
+        <circle class="ufo-light" cx="66" cy="29" r="3" fill="#fde047"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- blob buddy cartoon (bottom-right) -->
+  <div class="toon-buddy" aria-hidden="false">
+    <div class="buddy-bubble mono">…</div>
+    <svg class="toon-blob" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Blobby the blob buddy">
+      <path d="M50 8 C70 8 88 24 88 48 C88 74 72 92 50 92 C28 92 12 74 12 48 C12 24 30 8 50 8 Z" fill="#a855f7"/>
+      <path d="M50 8 C70 8 88 24 88 48 C88 60 84 70 77 78 C80 62 76 40 60 26 C54 20 60 8 50 8 Z" fill="#c084fc"/>
+      <g class="blob-face">
+        <ellipse class="blob-eye" cx="38" cy="44" rx="4.4" ry="5.6" fill="#1e1b4b"/>
+        <ellipse class="blob-eye" cx="62" cy="44" rx="4.4" ry="5.6" fill="#1e1b4b"/>
+        <circle cx="30" cy="55" r="4" fill="#f472b6" opacity=".55"/>
+        <circle cx="70" cy="55" r="4" fill="#f472b6" opacity=".55"/>
+        <path class="blob-mouth" d="M40 60 Q50 70 60 60" stroke="#1e1b4b" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </div>
+  <aside class="mascot-dock" aria-hidden="false">
+    <div class="mascot-message mono">Hi! Ready to make some AR magic?</div>
+    <svg class="vision-bot" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vision Bot, your AR assistant">
+      <line class="bot-antenna-dot" x1="50" y1="4" x2="50" y2="14" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/>
+      <circle class="bot-antenna-dot" cx="50" cy="5" r="4.5" fill="#f472b6"/>
+      <rect x="22" y="14" width="56" height="46" rx="14" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+      <rect x="28" y="22" width="44" height="28" rx="10" fill="#0f172a"/>
+      <g class="bot-eyes">
+        <circle class="bot-eye" cx="42" cy="36" r="5" fill="#22d3ee"/>
+        <circle class="bot-eye" cx="58" cy="36" r="5" fill="#22d3ee"/>
+        <circle cx="44" cy="34" r="1.6" fill="#ffffff"/>
+        <circle cx="60" cy="34" r="1.6" fill="#ffffff"/>
+      </g>
+      <rect x="40" y="60" width="20" height="7" rx="3.5" fill="#94a3b8"/>
+      <rect x="26" y="67" width="48" height="26" rx="12" fill="#334155"/>
+      <rect x="33" y="73" width="12" height="10" rx="3" fill="#22d3ee" opacity=".85"/>
+      <rect x="55" y="73" width="12" height="10" rx="3" fill="#f472b6" opacity=".85"/>
+    </svg>
+  </aside>
+  <nav class="navbar">
+    <a class="brand" href="{% url 'ar_app:home' %}">
+      <img src="/marker/23/" alt="AR marker logo" class="brand-marker">
+      <span>VISION<em>FORGE</em></span><span class="brand-badge">AR LAB</span>
+    </a>
+    <div class="nav-links">
+      <a href="{% url 'ar_app:home' %}" class="{% block nav_home %}{% endblock %}">Dashboard</a>
+      <a href="{% url 'ar_app:upload' %}" class="{% block nav_upload %}{% endblock %}">Upload &amp; Process</a>
+      <a href="{% url 'ar_app:live' %}" class="{% block nav_live %}{% endblock %}">Live AR Camera</a>
+      <a href="{% url 'ar_app:gallery' %}" class="{% block nav_gallery %}{% endblock %}">Gallery</a>
+      <a href="{% url 'ar_app:assets' %}" class="{% block nav_assets %}{% endblock %}">Assets</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span class="creator-credit">
+      <svg class="footer-gear" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g><path fill="currentColor" d="M12 8.4A3.6 3.6 0 1 0 12 15.6 3.6 3.6 0 0 0 12 8.4Zm9.2 5.2-.1-3.2-2.5-.5a6.8 6.8 0 0 0-.7-1.7l1.4-2.1-2.3-2.3-2.1 1.4a6.8 6.8 0 0 0-1.7-.7L12.7 2h-3.2l-.5 2.5a6.8 6.8 0 0 0-1.7.7L5.2 3.8 2.9 6.1l1.4 2.1a6.8 6.8 0 0 0-.7 1.7L1.1 10.4l-.1 3.2 2.5.5c.2.6.4 1.2.7 1.7l-1.4 2.1 2.3 2.3 2.1-1.4c.5.3 1.1.5 1.7.7l.5 2.5h3.2l.5-2.5c.6-.2 1.2-.4 1.7-.7l2.1 1.4 2.3-2.3-1.4-2.1c.3-.5.5-1.1.7-1.7l2.5-.5Z"/></g></svg>
+      <span><b>Created by</b> <span class="credit-name">Karthik Devikar</span> <span class="credit-badge">MCA</span></span>
+      <svg class="footer-gear small" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g><path fill="currentColor" d="M12 8.4A3.6 3.6 0 1 0 12 15.6 3.6 3.6 0 0 0 12 8.4Zm9.2 5.2-.1-3.2-2.5-.5a6.8 6.8 0 0 0-.7-1.7l1.4-2.1-2.3-2.3-2.1 1.4a6.8 6.8 0 1 0-.7 1.7l-1.4 2.1 2.3 2.3 2.1-1.4c.5.3 1.1.5 1.7.7l.5 2.5h3.2l.5-2.5c.6-.2 1.2-.4 1.7-.7l2.1 1.4 2.3-2.3-1.4-2.1c.3-.5.5-1.1.7-1.7l2.5-.5Z"/></g></svg>
+    </span>
+    <span>Augmented Reality in Image Processing · Django + OpenCV</span>
+    <span class="mono">ArUco 6x6 · ORB · RANSAC homography · solvePnP</span>
+  </footer>
+  <script src="{% static 'js/interactions.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

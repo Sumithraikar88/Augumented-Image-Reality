@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Result #{{ item.pk }}{% endblock %}
+
+{% block content %}
+<h1>{{ item.title|default:"Result" }} <span class="badge">{{ item.get_mode_display }}</span></h1>
+<p class="muted">Created {{ item.created_at|date:"M d, Y H:i" }}</p>
+
+<div class="two-col">
+  <div class="card">
+    <h3>Original</h3>
+    <img class="full-img" src="{{ item.original.url }}" alt="Original">
+  </div>
+  <div class="card">
+    <h3>Augmented result</h3>
+    <img class="full-img" src="{{ item.processed.url }}" alt="Processed">
+  </div>
+</div>
+
+<div class="card">
+  <h3>Pipeline stats</h3>
+  <ul class="stats-list mono">
+    <li>mode: {{ item.mode }}</li>
+    <li>filter: {{ item.filter_name }}</li>
+    <li>markers found: {{ item.aruco_count }} (IDs: {{ item.marker_ids|default:"—" }})</li>
+    <li>good_matches: {{ item.good_matches }} · inliers: {{ item.inliers }}</li>
+  </ul>
+  <form method="post" action="{% url 'ar_app:gallery_delete' item.pk %}" class="inline-form"
+        onsubmit="return confirm('Delete this result?');">
+    {% csrf_token %}
+    <button type="submit" class="btn danger">🗑 Delete</button>
+  </form>
+</div>
+{% endblock %}
